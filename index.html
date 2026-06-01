@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 불곡 - 스카이블루 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      /* ☁️ 스카이블루 테마 색상 정의 */
+      :root { 
+        --poster-top: #f0f9ff;      /* 아주 연한 하늘색 */
+        --poster-bottom: #ffffff;   /* 깨끗한 흰색 구름 느낌 */
+        
+        --sky-soft: #0ea5e9;        /* 포인트 스카이블루 */
+        --sky-deep: #0369a1;        /* 진한 딥블루 (텍스트용) */
+        --sky-light: #bae6fd;       /* 매우 연한 파스텔 블루 (선/테두리용) */
+        --text-color: #334155;      /* 눈이 편안한 네이비 톤 회색 */
+      }
+      
+      body { 
+        font-family: 'Noto Sans KR', sans-serif; 
+        background: linear-gradient(180deg, var(--poster-top) 0%, #e0f2fe 50%, var(--poster-bottom) 100%); 
+        background-attachment: fixed;
+        margin: 0; 
+        padding: 12px; 
+        color: var(--text-color); 
+        min-height: 100vh; 
+        box-sizing: border-box; 
+      }
+      
+      ::-webkit-scrollbar { display: none; }
+      
+      .header { text-align: center; margin-bottom: 15px; padding-top: 10px; }
+      
+      .header h1 { 
+        font-family: 'Nanum Pen Script', cursive; 
+        font-size: 4.5em; 
+        color: var(--sky-soft); 
+        margin: 0; 
+        text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9);
+        letter-spacing: 1px;
+      }
+      
+      .date-time-container { 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 15px; 
+        background: rgba(255, 255, 255, 0.8); 
+        padding: 6px 30px; 
+        border-radius: 40px; 
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1); 
+        margin-top: 5px; 
+      }
+      
+      #today-date { font-size: 1.3em; color: var(--sky-deep); font-weight: 700; margin: 0; }
+      
+      #current-time { 
+        font-size: 2.2em; 
+        color: #ffffff; 
+        font-weight: 900; 
+        background: var(--sky-light); 
+        padding: 4px 25px; 
+        border-radius: 30px; 
+        font-family: monospace; 
+        letter-spacing: -1px; 
+        margin: 0; 
+      }
+      
+      .main-container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+      
+      .card { 
+        background: rgba(255, 255, 255, 0.9); 
+        backdrop-filter: blur(8px); 
+        border-radius: 30px; 
+        padding: 20px; 
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04); 
+        border: 1px solid rgba(255, 255, 255, 0.8); 
+        transition: transform 0.3s ease; 
+        flex: 1; 
+        min-width: 250px; 
+      }
+      
+      .card h2 { 
+        font-size: 1.4em; 
+        margin-top: 0; 
+        margin-bottom: 12px; 
+        color: var(--sky-soft); 
+        border-bottom: 2px dashed var(--sky-light); 
+        padding-bottom: 8px; 
+        white-space: nowrap; 
+      }
+      .top-row { display: flex; gap: 14px; flex-wrap: wrap; }
+      .card#weather-section { padding: 20px; flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; }
+      .weather-wrapper { display: flex; flex-direction: column; width: 100%; }
+      .weather-current { display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; width: 100%; gap: 5px; }
+      .weather-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+      .weather-icon { width: 45px; height: 45px; margin: -5px 0; filter: opacity(0.8); }
+      .weather-temp { font-size: 1.5em; font-weight: bold; color: var(--sky-deep); }
+      .weather-label { font-size: 0.8em; color: var(--sky-soft); }
+      .weather-value { font-size: 0.95em; font-weight: bold; color: var(--text-color); }
+      
+      .hourly-container { display: flex; justify-content: space-between; overflow-x: auto; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--sky-light); gap: 10px; }
+      .hourly-item { display: flex; flex-direction: column; align-items: center; min-width: 45px; }
+      .hourly-time { font-size: 0.75em; color: var(--sky-soft); font-weight: bold; }
+      .hourly-icon { width: 30px; height: 30px; margin: -2px 0; filter: opacity(0.7); }
+      .hourly-temp { font-size: 0.85em; font-weight: 700; color: var(--sky-deep); }
+      
+      .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); grid-auto-flow: column; gap: 10px; margin-top: 12px; }
+      .link-btn { display: flex; align-items: center; justify-content: center; padding: 12px 6px; text-decoration: none; border-radius: 15px; font-weight: bold; font-size: 0.95em; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); word-break: keep-all; line-height: 1.3; transition: all 0.2s; }
+      .link-btn:hover { filter: brightness(0.98); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+      
+      /* 버튼 색상 - 블루 테마에 어울리게 미세 조정 */
+      .link-btn.cal { background: #f8fafc; color: #475569; border-left: 5px solid #cbd5e1; }
+      .link-btn.repair { background: #eff6ff; color: #2563eb; border-left: 5px solid #bfdbfe; }
+      .link-btn.moon { background: #f5f3ff; color: #7c4dff; border-left: 5px solid #ede9fe; }
+      .link-btn.lunch { background: #fffbeb; color: #d97706; border-left: 5px solid #fde68a; }
+      .link-btn.meeting { background: #fdf4ff; color: #c026d3; border-left: 5px solid #f5d0fe; }
+      .link-btn.bell { background: #fef2f2; color: #ef4444; border-left: 5px solid #fecaca; }
+      .link-btn.smart { background: #f0fdfa; color: #0d9488; border-left: 5px solid #ccfbf1; }
+      
+      .dashboard-row { display: flex; flex-wrap: wrap; gap: 14px; }
+      .column-wrapper { display: flex; flex-direction: column; gap: 14px; flex: 1; min-width: 250px; }
+      #dream-card { flex: 0.8; } #awake-card { flex: 1.2; }
+      
+      .meal-content { font-size: 1.15em; line-height: 1.7; text-align: center; background: rgba(255,255,255,0.7); padding: 15px; border-radius: 20px; min-height: 110px; display: flex; flex-direction: column; justify-content: center; border: 1px solid #e0f2fe; color: var(--text-color);}
+      .meal-content.tomorrow { background: rgba(255,255,255,0.4); border-color: #f1f5f9; color: #64748b;}
+      
+      .activity-item { background: white; padding: 12px; margin-bottom: 8px; border-radius: 15px; border-left: 6px solid var(--sky-light); font-size: 1em; line-height: 1.4; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+      .activity-item.lunch-sup { border-left-color: var(--sky-soft); margin-top: 10px; background: #f0f9ff; } 
+      .activity-item.lunch-sup-tomorrow { border-left-color: #cbd5e1; margin-top: 10px; background: #f8fafc; }
+      .activity-item.tomorrow { border-left-color: #e2e8f0; color: #64748b; } 
+      .activity-item.night-today { border-left-color: #fef08a; } 
+      .activity-item.night-tomorrow { border-left-color: #f1f5f9; } 
+      .activity-item.announcement { border-left-color: #fed7aa; font-size: 1.05em; } 
+      .activity-item.awake { border-left-color: #99f6e4; }
+      
+      .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2.5em; color: var(--sky-soft); z-index: 100; font-family: 'Nanum Pen Script', cursive; transition: opacity 0.8s; }
+      .loading.fade-out { opacity: 0; visibility: hidden; }
+      
+      @media (max-width: 900px) { 
+        .date-time-container { flex-direction: column; gap: 8px; padding: 15px; } 
+        .btn-grid { grid-template-columns: 1fr 1fr; grid-auto-flow: row; } 
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader" class="loading">
+      <span id="loader-text">☁️ 푸른 하늘 바람을 타고 데이터를 가져오는 중...</span>
+      <div id="loader-error" style="font-size:0.4em;color:#ffeded;margin-top:15px;font-family:'Noto Sans KR', sans-serif;"></div>
+    </div>
+    
+    <div class="header">
+      <h1>☁️ 오늘 불곡</h1>
+      <div class="date-time-container">
+        <p id="today-date">0000년 00월 00일</p>
+        <div id="current-time">오전 00:00:00</div>
+      </div>
+    </div>
+    
+    <div class="main-container" style="display:none;" id="main-content">
+      <div class="top-row">
+        <div class="card" id="weather-section"></div>
+        <div class="card" style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center;">
+          <h2>📘 오늘 불곡 확인</h2>
+          <div class="btn-grid">
+            <!-- ⚠️ 아래 버튼들의 링크(href)도 불곡고 구글 시트 주소로 교체하세요 -->
+            <a href="#" target="_blank" class="link-btn cal">📅 월간 계획</a>
+            <a href="#" target="_blank" class="link-btn repair">🔧 기자재 수리</a>
+            <a href="#" target="_blank" class="link-btn moon">🌙 꿈꾸는 글마루</a>
+            <a href="#" target="_blank" class="link-btn lunch">🍱 급식 지도</a>
+            <a href="#" target="_blank" class="link-btn meeting">👥 교직원회의 일정</a>
+            <a href="#" target="_blank" class="link-btn bell">🕊️ 전달사항 입력</a>
+            <a href="#" target="_blank" class="link-btn smart">🌱 연수등록부</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dashboard-row">
+        <div class="column-wrapper">
+          <div class="card"><h2>🥗 오늘 급식</h2><div id="meal-list" class="meal-content"></div><div id="lunch-supervision" class="activity-item lunch-sup" style="display:none;"></div></div>
+          <div class="card"><h2>🍚 내일 급식</h2><div id="tomorrow-meal-list" class="meal-content tomorrow"></div><div id="tomorrow-lunch-supervision" class="activity-item lunch-sup-tomorrow" style="display:none;"></div></div>
+        </div>
+        <div class="card"><h2 id="today-event-title">🔹 오늘 행사</h2><div id="activity-list"></div></div>
+        <div class="card"><h2 id="tomorrow-event-title">🔸 내일 행사</h2><div id="tomorrow-activity-list"></div></div>
+        <div class="column-wrapper">
+          <div class="card" id="dream-card"><h2>🌙 꿈꾸는 글마루</h2><div id="today-supervision" class="activity-item night-today"></div><div id="tomorrow-supervision" class="activity-item night-tomorrow"></div></div>
+          <div class="card" id="awake-card"><h2>☀️ 깨어있는 글마루</h2><div id="awake-geulmaru-list" class="activity-item awake"></div></div>
+        </div>
+        <div class="card"><h2>📮 전달사항</h2><div id="announcement-list" class="activity-item announcement"></div></div>
+      </div>
+    </div>
+    
+    <script>
+      // ==========================================
+      // ⚠️ 구글 앱스 스크립트에서 배포하고 얻은 웹 앱 URL을 아래에 반드시 붙여넣으세요!
+      // ==========================================
+      const API_URL = "YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE"; 
+
+      // 시계 업데이트 함수 (보기 쉽게 정리됨)
+      function updateClock() {
+        const now = new Date();
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const ampm = h >= 12 ? '오후' : '오전';
+        h = h % 12 || 12;
+        document.getElementById('current-time').textContent = ampm + " " + String(h).padStart(2, '0') + ":" + m + ":" + s;
+      }
+      
+      // 링크 변환 함수 (스카이블루 테마에 맞게 색상 변경)
+      function formatTextWithLinksForEvents(text) {
+        if (!text) return "";
+        let result = String(text);
+        const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g; 
+        result = result.replace(urlRegex, function(url) {
+          const cleanUrl = url.replace(/[.,)\]"']+$/, ""); 
+          const fullUrl = cleanUrl.indexOf("http") === 0 ? cleanUrl : "https://" + cleanUrl;
+          const trailing = url.substring(cleanUrl.length); 
+          // 버튼 색상을 스카이블루 톤으로 맞춤 (#0284c7)
+          return `<a href="${fullUrl}" target="_blank" style="color: #0284c7; text-decoration: none; font-weight: bold; background: #e0f2fe; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-top: 3px;">[바로가기 🔗]</a>` + trailing;
+        });
+        return result;
+      }
+      
+      // 깃허브용 Fetch API 기반 데이터 로드 함수
+      async function fetchDashboardData() {
+        try {
+          if (API_URL === "YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE") {
+            throw new Error("API URL이 입력되지 않았습니다. 코드 하단의 API_URL을 수정해주세요.");
+          }
+
+          // 구글 앱스 스크립트에서 데이터 가져오기
+          const response = await fetch(API_URL);
+          if (!response.ok) throw new Error("서버에서 데이터를 불러오는 데 실패했습니다.");
+          
+          const data = await response.json();
+          
+          // 로딩 화면 숨기고 메인 화면 표시
+          document.getElementById('main-content').style.display = 'flex';
+          document.getElementById('loader').classList.add('fade-out');
+          
+          // 오늘 날짜 및 요일 세팅
+          document.getElementById('today-date').textContent = data.date;
+          const t = new Date();
+          const d = ["일","월","화","수","목","금","토"];
+          
+          document.getElementById('today-event-title').innerHTML = `🔹 오늘 행사 <span style='font-size:0.7em;color:var(--sky-soft);'>${t.getMonth()+1}/${t.getDate()}(${d[t.getDay()]})</span>`;
+          
+          const tm = new Date();
+          tm.setDate(t.getDate()+1);
+          document.getElementById('tomorrow-event-title').innerHTML = `🔸 내일 행사 <span style='font-size:0.7em;color:var(--sky-soft);'>${tm.getMonth()+1}/${tm.getDate()}(${d[tm.getDay()]})</span>`;
+          
+          // 전달사항 및 글마루 세팅
+          document.getElementById('announcement-list').innerHTML = data.announcement;
+          document.getElementById('awake-geulmaru-list').innerHTML = data.awakeGeulmaru;
+          
+          // 날씨 세팅
+          const wSection = document.getElementById('weather-section');
+          if (data.weather.error) {
+            wSection.innerHTML = `<h2>🌤️ 오늘 학교 날씨</h2><p style="color:#ef4444; font-weight:bold; text-align:center; margin:0;">⚠️ ${data.weather.error}</p>`;
+          } else {
+            let currentHtml = `
+              <h2>🌤️ 오늘 학교 날씨</h2>
+              <div class="weather-wrapper">
+                <div class="weather-current">
+                  <div class="weather-item">
+                    <span class="weather-label">현재 날씨</span>
+                    <img src="${data.weather.iconUrl}" class="weather-icon" alt="날씨">
+                    <span class="weather-value">${data.weather.desc}</span>
+                  </div>
+                  <div class="weather-item">
+                    <span class="weather-label">기온</span>
+                    <span class="weather-temp">${data.weather.temp}°C</span>
+                  </div>
+                  <div class="weather-item">
+                    <span class="weather-label">습도</span>
+                    <span class="weather-value">${data.weather.humidity}%</span>
+                  </div>
+                  <div class="weather-item">
+                    <span class="weather-label">미세먼지</span>
+                    <span class="weather-value" style="color:${data.weather.aqiColor}">${data.weather.aqiText}</span>
+                  </div>
+                </div>
+            `;
+            let hourlyHtml = `<div class="hourly-container">`;
+            if (data.weather.hourly) {
+              data.weather.hourly.forEach(function(h) {
+                hourlyHtml += `
+                  <div class="hourly-item">
+                    <span class="hourly-time">${h.time}</span>
+                    <img src="${h.iconUrl}" class="hourly-icon" alt="예보">
+                    <span class="hourly-temp">${h.temp}°C</span>
+                  </div>
+                `;
+              });
+            }
+            wSection.innerHTML = currentHtml + hourlyHtml + `</div></div>`;
+          }
+          
+          // 급식 세팅
+          document.getElementById('meal-list').innerHTML = data.meal.split('').join('<br>');
+          if (data.lunchSupervisor) {
+            const ls = document.getElementById('lunch-supervision');
+            ls.style.display = 'block';
+            ls.innerHTML = `<small style='color:var(--sky-soft);'>[급식지도] ${data.lunchSupervisor.label}</small><br><b style='color:var(--sky-deep);'>${data.lunchSupervisor.names}</b>`;
+          }
+          
+          document.getElementById('tomorrow-meal-list').innerHTML = data.tomorrowMeal.split('').join('<br>');
+          if (data.tomorrowLunchSupervisor) {
+            const tls = document.getElementById('tomorrow-lunch-supervision');
+            tls.style.display = 'block';
+            tls.innerHTML = `<small style='color:var(--sky-soft);'>[급식지도] ${data.tomorrowLunchSupervisor.label}</small><br><b style='color:#64748b;'>${data.tomorrowLunchSupervisor.names}</b>`;
+          }
+          
+          // 행사 세팅
+          const al = document.getElementById('activity-list');
+          al.innerHTML = '';
+          data.activities.forEach(function(item) {
+            const div = document.createElement('div');
+            div.className = 'activity-item';
+            div.innerHTML = formatTextWithLinksForEvents(item);
+            al.appendChild(div);
+          });
+          
+          const tal = document.getElementById('tomorrow-activity-list');
+          tal.innerHTML = '';
+          data.tomorrowActivities.forEach(function(item) {
+            const div = document.createElement('div');
+            div.className = 'activity-item tomorrow';
+            div.innerHTML = formatTextWithLinksForEvents(item);
+            tal.appendChild(div);
+          });
+          
+          // 감독 세팅
+          document.getElementById('today-supervision').innerHTML = `<small style='color:var(--sky-soft);'>[오늘] ${data.todaySupervisors.label}</small><br><b style='color:var(--sky-deep);'>${data.todaySupervisors.names}</b>`;
+          document.getElementById('tomorrow-supervision').innerHTML = `<small style='color:var(--sky-soft);'>[내일] ${data.tomorrowSupervisors.label}</small><br><b style='color:#64748b;'>${data.tomorrowSupervisors.names}</b>`;
+          
+        } catch(e) {
+          console.error(e);
+          document.getElementById('loader-error').textContent = "오류 발생: " + e.message;
+        }
+      }
+      
+      // 실행 스크립트 세팅
+      document.addEventListener("DOMContentLoaded", function() {
+        updateClock();
+        setInterval(updateClock, 1000); // 1초마다 시계 업데이트
+        
+        fetchDashboardData();
+        setInterval(fetchDashboardData, 1800000); // 30분마다 전체 데이터 갱신
+      });
+    </script>
+  </body>
+</html>
