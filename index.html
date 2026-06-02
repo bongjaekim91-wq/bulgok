@@ -110,7 +110,6 @@
       .link-btn { display: flex; align-items: center; justify-content: center; padding: 12px 6px; text-decoration: none; border-radius: 15px; font-weight: bold; font-size: 0.95em; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); word-break: keep-all; line-height: 1.3; transition: all 0.2s; }
       .link-btn:hover { filter: brightness(0.98); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
       
-      /* 버튼 색상 - 블루 테마에 어울리게 미세 조정 */
       .link-btn.cal { background: #f8fafc; color: #475569; border-left: 5px solid #cbd5e1; }
       .link-btn.repair { background: #eff6ff; color: #2563eb; border-left: 5px solid #bfdbfe; }
       .link-btn.moon { background: #f5f3ff; color: #7c4dff; border-left: 5px solid #ede9fe; }
@@ -164,7 +163,6 @@
         <div class="card" style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center;">
           <h2>📘 오늘 불곡 확인</h2>
           <div class="btn-grid">
-            <!-- ⚠️ 아래 버튼들의 링크(href)도 불곡고 구글 시트 주소로 교체하세요 -->
             <a href="#" target="_blank" class="link-btn cal">📅 월간 계획</a>
             <a href="#" target="_blank" class="link-btn repair">🔧 기자재 수리</a>
             <a href="#" target="_blank" class="link-btn moon">🌙 꿈꾸는 글마루</a>
@@ -193,11 +191,10 @@
     
     <script>
       // ==========================================
-      // ⚠️ 구글 앱스 스크립트에서 배포하고 얻은 웹 앱 URL을 아래에 반드시 붙여넣으세요!
+      // ✅ 알려주신 API 주소를 정확히 반영했습니다.
       // ==========================================
       const API_URL = "https://script.google.com/macros/s/AKfycbyQbbwZJhbxz668xgxSIm_0ZJ4k97B7WvcAqpJ2agLXzCcRKvJyLQlk_NhcYBraQLH_/exec"; 
 
-      // 시계 업데이트 함수 (보기 쉽게 정리됨)
       function updateClock() {
         const now = new Date();
         let h = now.getHours();
@@ -208,7 +205,6 @@
         document.getElementById('current-time').textContent = ampm + " " + String(h).padStart(2, '0') + ":" + m + ":" + s;
       }
       
-      // 링크 변환 함수 (스카이블루 테마에 맞게 색상 변경)
       function formatTextWithLinksForEvents(text) {
         if (!text) return "";
         let result = String(text);
@@ -217,30 +213,25 @@
           const cleanUrl = url.replace(/[.,)\]"']+$/, ""); 
           const fullUrl = cleanUrl.indexOf("http") === 0 ? cleanUrl : "https://" + cleanUrl;
           const trailing = url.substring(cleanUrl.length); 
-          // 버튼 색상을 스카이블루 톤으로 맞춤 (#0284c7)
           return `<a href="${fullUrl}" target="_blank" style="color: #0284c7; text-decoration: none; font-weight: bold; background: #e0f2fe; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-top: 3px;">[바로가기 🔗]</a>` + trailing;
         });
         return result;
       }
       
-      // 깃허브용 Fetch API 기반 데이터 로드 함수
       async function fetchDashboardData() {
         try {
-          if (API_URL === "YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE") {
-            throw new Error("API URL이 입력되지 않았습니다. 코드 하단의 API_URL을 수정해주세요.");
+          if (!API_URL || API_URL === "여기에_웹앱_주소_붙여넣기") {
+            throw new Error("API URL이 입력되지 않았습니다.");
           }
 
-          // 구글 앱스 스크립트에서 데이터 가져오기
           const response = await fetch(API_URL);
           if (!response.ok) throw new Error("서버에서 데이터를 불러오는 데 실패했습니다.");
           
           const data = await response.json();
           
-          // 로딩 화면 숨기고 메인 화면 표시
           document.getElementById('main-content').style.display = 'flex';
           document.getElementById('loader').classList.add('fade-out');
           
-          // 오늘 날짜 및 요일 세팅
           document.getElementById('today-date').textContent = data.date;
           const t = new Date();
           const d = ["일","월","화","수","목","금","토"];
@@ -251,11 +242,9 @@
           tm.setDate(t.getDate()+1);
           document.getElementById('tomorrow-event-title').innerHTML = `🔸 내일 행사 <span style='font-size:0.7em;color:var(--sky-soft);'>${tm.getMonth()+1}/${tm.getDate()}(${d[tm.getDay()]})</span>`;
           
-          // 전달사항 및 글마루 세팅
           document.getElementById('announcement-list').innerHTML = data.announcement;
           document.getElementById('awake-geulmaru-list').innerHTML = data.awakeGeulmaru;
           
-          // 날씨 세팅
           const wSection = document.getElementById('weather-section');
           if (data.weather.error) {
             wSection.innerHTML = `<h2>🌤️ 오늘 학교 날씨</h2><p style="color:#ef4444; font-weight:bold; text-align:center; margin:0;">⚠️ ${data.weather.error}</p>`;
@@ -298,22 +287,23 @@
             wSection.innerHTML = currentHtml + hourlyHtml + `</div></div>`;
           }
           
-          // 급식 세팅
-          document.getElementById('meal-list').innerHTML = data.meal.split('').join('<br>');
+          // ==============================================================
+          // 💡 급식 메뉴 가로(단어) 정렬 표시
+          // ==============================================================
+          document.getElementById('meal-list').innerHTML = data.meal;
           if (data.lunchSupervisor) {
             const ls = document.getElementById('lunch-supervision');
             ls.style.display = 'block';
             ls.innerHTML = `<small style='color:var(--sky-soft);'>[급식지도] ${data.lunchSupervisor.label}</small><br><b style='color:var(--sky-deep);'>${data.lunchSupervisor.names}</b>`;
           }
           
-          document.getElementById('tomorrow-meal-list').innerHTML = data.tomorrowMeal.split('').join('<br>');
+          document.getElementById('tomorrow-meal-list').innerHTML = data.tomorrowMeal;
           if (data.tomorrowLunchSupervisor) {
             const tls = document.getElementById('tomorrow-lunch-supervision');
             tls.style.display = 'block';
             tls.innerHTML = `<small style='color:var(--sky-soft);'>[급식지도] ${data.tomorrowLunchSupervisor.label}</small><br><b style='color:#64748b;'>${data.tomorrowLunchSupervisor.names}</b>`;
           }
           
-          // 행사 세팅
           const al = document.getElementById('activity-list');
           al.innerHTML = '';
           data.activities.forEach(function(item) {
@@ -332,23 +322,20 @@
             tal.appendChild(div);
           });
           
-          // 감독 세팅
           document.getElementById('today-supervision').innerHTML = `<small style='color:var(--sky-soft);'>[오늘] ${data.todaySupervisors.label}</small><br><b style='color:var(--sky-deep);'>${data.todaySupervisors.names}</b>`;
           document.getElementById('tomorrow-supervision').innerHTML = `<small style='color:var(--sky-soft);'>[내일] ${data.tomorrowSupervisors.label}</small><br><b style='color:#64748b;'>${data.tomorrowSupervisors.names}</b>`;
           
         } catch(e) {
           console.error(e);
-          document.getElementById('loader-error').textContent = "오류 발생: " + e.message;
+          document.getElementById('loader-error').textContent = "데이터를 불러오는 데 실패했습니다. 잠시 후 새로고침 해주세요.";
         }
       }
       
-      // 실행 스크립트 세팅
       document.addEventListener("DOMContentLoaded", function() {
         updateClock();
-        setInterval(updateClock, 1000); // 1초마다 시계 업데이트
-        
+        setInterval(updateClock, 1000); 
         fetchDashboardData();
-        setInterval(fetchDashboardData, 1800000); // 30분마다 전체 데이터 갱신
+        setInterval(fetchDashboardData, 1800000); 
       });
     </script>
   </body>
